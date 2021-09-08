@@ -1,0 +1,8 @@
+{
+  "name": "gulagbot",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@rocket.chat/sdk": "*",
+    "dotenv": "^10.0.0"
+  }
+}
