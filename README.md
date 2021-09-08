@@ -25,6 +25,12 @@ touch .env
 
 ### 3. Create a bot user in your Rocket.Chat
 
+You'll want to create a new bot user with the permissions of bot.
+
+
+You'll also want to make sure your Rocket.Chat has a room called `Gulag`, and that the bot is inside that channel. 
+You can modify the `ROOMS` variable to include more rooms that the bot can be included in. The more channels the bot is in,
+the more channels you can use to send someone to the Gulag.
 
 
 ### 4. The `.env` file
@@ -39,5 +45,24 @@ ROCKETPASS=mypassword
 BOTNAME=My Bot
 ```
 
+Of course, you'll fill in the credentials that you used to create the bot in step number 3.
 
+### 5. Run the bot
+
+Simply run the command 
+```
+node gulagbot.js
+```
+
+### 6. Send someone to the Gulag
+
+All you have to do is be an Admin & mention someone with the prefix `!gulag`.
+
+If we had a user with the username `badman`, all we would have to do is type
+
+```
+!gulag @badman
+```
+
+and then gulagbot will take care of the rest.
 
