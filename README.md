@@ -1,4 +1,4 @@
-# Gulag Bot
+# Gulag Bot - WIP!
 Sends people to the gulag in Rocket Chat
 
 
