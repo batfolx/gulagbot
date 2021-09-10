@@ -1,5 +1,5 @@
-# Gulag Bot - WIP!
-Sends people to the gulag in Rocket Chat
+# Gulag Bot
+Sends people to the gulag in Rocket Chat, using the [Rocket.Chat JS SDK](https://github.com/RocketChat/Rocket.Chat.js.SDK).
 
 
 ## Getting Started
@@ -45,7 +45,11 @@ ROCKETCHAT_PASSWORD=password
 TIMEOUT=60000
 ```
 
-Of course, you'll fill in the credentials that you used to create the bot in step number 3.
+Of course, you'll fill in the credentials that you used to create the bot in step 3 with `ROCKETCHAT_URL` being the host of your Rocket.Chat server,
+`ROCKETCHAT_USER` being the username of the bot created in step 3, and `ROCKETCHAT_PASSWORD` being the password of the bot created in step 3.
+
+The reference for this is [at this link](https://github.com/RocketChat/Rocket.Chat.js.SDK#settings).
+
 
 ### 5. Run the bot
 
@@ -64,5 +68,7 @@ If we had a user with the username `badman`, all we would have to do is type
 !gulag @badman
 ```
 
-and then gulagbot will take care of the rest.
+and then bot will take care of the rest.
+
+The bot will automatically take people out of the Gulag at the end of the specified `TIMEOUT` environment variable.
 
