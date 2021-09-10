@@ -19,7 +19,6 @@ const gulagbot = async () => {
     await driver.reactToMessages(processMessages);
     gulagRoomId = await driver.getRoomId(ROOMS[0]);
     await api.login();
-    await getUserRoles();
 }
 
 // callback for incoming messages filter and processing
@@ -49,8 +48,9 @@ const processMessages = async(err, message, messageOptions) => {
     }
 }
 
-
-async function getUserRoles()  {
+// Gets the Admins of the server
+// because only an Admin can add people to the Gulag
+async function getAdmins()  {
     let messagePayload = {
         "msg": "method",
         "method": "getUserRoles",
