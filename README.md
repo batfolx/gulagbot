@@ -43,12 +43,15 @@ ROCKETCHAT_URL=http://127.0.0.1:80
 ROCKETCHAT_USER=GulagBot
 ROCKETCHAT_PASSWORD=password
 TIMEOUT=60000
+USESLL=false
 ```
 
 Of course, you'll fill in the credentials that you used to create the bot in step 3 with `ROCKETCHAT_URL` being the host of your Rocket.Chat server,
 `ROCKETCHAT_USER` being the username of the bot created in step 3, and `ROCKETCHAT_PASSWORD` being the password of the bot created in step 3.
 
 The reference for this is [at this link](https://github.com/RocketChat/Rocket.Chat.js.SDK#settings).
+
+If you are using this for a production server, **PLEASE MAKE SURE YOU ARE USING HTTPS AND SSL.**
 
 
 ### 5. Run the bot
