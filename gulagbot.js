@@ -1,12 +1,12 @@
 require('dotenv').config();
-const { driver } = require('@rocket.chat/sdk');
+const { driver, api } = require('@rocket.chat/sdk');
 // customize the following with your server and BOT account information
-const HOST = process.env.HOST;
-const USER = process.env.ROCKETUSER;
-const PASS = process.env.ROCKETPASS;
+const HOST = process.env.ROCKETCHAT_URL;
+const USER = process.env.ROCKETCHAT_USER;
+const PASS = process.env.ROCKETCHAT_PASSWORD;
 const BOTNAME = process.env.BOTNAME;
 const SSL = false;  // server uses https ?
-const ROOMS = ['Gulag', 'general'];
+const ROOMS = ['gulag', 'general'];
 
 let myuserid;
 let gulagRoomId;
@@ -19,18 +19,16 @@ const runbot = async () => {
     await driver.joinRooms(ROOMS);
     // set up subscriptions - rooms we are interested in listening to
     await driver.subscribeToMessages();
-    console.log('Subscribed');
     // connect the processMessages callback
     await driver.reactToMessages( processMessages );
     // greets from the first room in ROOMS
     await driver.sendToRoom(BOTNAME + ' is listening ...', ROOMS[0]);
     gulagRoomId = await driver.getRoomId(ROOMS[0])
-    console.log('Greeting message sent');
+    await api.login();
 }
 
 // callback for incoming messages filter and processing
 const processMessages = async(err, message, messageOptions) => {
-    console.log(message);
     if (!err) {
         // filter our own message
         if (message.u._id === myuserid) return;
@@ -50,6 +48,7 @@ const processMessages = async(err, message, messageOptions) => {
                 for (let mention in mentions) {
                     userIds.push(mention._id)
                 }
+
 
 
             }
