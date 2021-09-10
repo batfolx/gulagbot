@@ -3,14 +3,13 @@ const { driver, api } = require('@rocket.chat/sdk');
 const HOST = process.env.ROCKETCHAT_URL;
 const USER = process.env.ROCKETCHAT_USER;
 const PASS = process.env.ROCKETCHAT_PASSWORD;
-const SSL = false;  // server uses https ?
+const SSL = process.env.USESSL;
 const ROOMS = ['gulag', 'general'];
 let TIMEOUT = process.env.TIMEOUT;
 if (TIMEOUT === undefined || TIMEOUT === null) {
     TIMEOUT = (1000 * 60 * 1); // 1s * 60sec in minute * 1 minutes timeout time
 }
 
-console.log('TIMEOUT', TIMEOUT);
 let myuserid;
 let gulagRoomId;
 
@@ -25,7 +24,13 @@ const gulagbot = async () => {
     await api.login();
 }
 
-// callback for incoming messages filter and processing
+/**
+ * Callback for the processing of messages.
+ * @param err If something went wrong.
+ * @param message The message itself.
+ * @param messageOptions Where the options came from.
+ * @returns {Promise<void>} unused
+ */
 const processMessages = async(err, message, messageOptions) => {
     if (!err) {
         try {
@@ -41,11 +46,13 @@ const processMessages = async(err, message, messageOptions) => {
 
 
                 // could possibly cache this, but for right now this'll do
-                const adminIds = await getAdmins();
-                const admins = adminIds['admins'];
-                const ids = adminIds['ids'];
+                const adminInfo = await getAdmins();
+                // const admins = adminInfo['admins'];
+
+                // these are the admins ID's in the server
+                const adminIds = adminInfo['ids'];
                 // don't listen to anybody who is not an admin
-                if (!ids.includes(userId)) {
+                if (!adminIds.includes(userId)) {
                     await driver.sendToRoom('You cannot send someone to the Gulag. You are not an Admin!', roomName);
                     return;
                 }
@@ -77,8 +84,11 @@ const processMessages = async(err, message, messageOptions) => {
     }
 }
 
-// Gets the Admins of the server
-// because only an Admin can add people to the Gulag
+/**
+ * Gets the admins of the server.
+ * @returns {Promise<{ids: *[], admins: *[]}>} A dictionary containing two keys of lists of the ids of
+ * the admins and the admins usernames.
+ */
 async function getAdmins()  {
     try {
         let messagePayload = {
@@ -113,7 +123,13 @@ async function getAdmins()  {
     }
 }
 
-// adds users to the gulag
+/**
+ * Adds users to the Gulag.
+ * @param roomId The room ID of the Gulag.
+ * @param users The list of usernames to add.
+ * @param userIds The list of user ID's to remove after the TIMEOUT variable expires.
+ * @returns {Promise<void>} unused
+ */
 async function addUsersToTheGulag(roomId, users, userIds) {
     try {
         let data = {
@@ -143,16 +159,22 @@ async function addUsersToTheGulag(roomId, users, userIds) {
     }
 }
 
-async function removeUserFromGulag(roomId, userId, username) {
 
+/**
+ * Removes a user from the Gulag.
+ * @param roomId The room ID of the Gulag.
+ * @param userId The userId of the user to remove from the Gulag.
+ * @param username The username of the user. Only meant for logging purposes if something
+ * goes wrong.
+ * @returns {Promise<void>} unused
+ */
+async function removeUserFromGulag(roomId, userId, username) {
     let data = {roomId: roomId, userId: userId};
     try {
         await api.post('groups.kick', data);
     } catch (e) {
         console.log('Failed to remove', username, 'from the gulag');
     }
-
-
 }
 
 gulagbot();
