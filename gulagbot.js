@@ -3,7 +3,6 @@ const { driver, api } = require('@rocket.chat/sdk');
 const HOST = process.env.ROCKETCHAT_URL;
 const USER = process.env.ROCKETCHAT_USER;
 const PASS = process.env.ROCKETCHAT_PASSWORD;
-const BOTNAME = process.env.BOTNAME;
 const SSL = false;  // server uses https ?
 const ROOMS = ['gulag', 'general'];
 
@@ -39,7 +38,7 @@ const processMessages = async(err, message, messageOptions) => {
             const adminIds = await getAdmins();
             const admins = adminIds['admins'];
             const ids = adminIds['ids'];
-            //
+            // don't listen to anybody who is not an admin
             if (!ids.includes(userId)) {
                 await driver.sendToRoom('You cannot send someone to the Gulag. You are not an Admin!', roomName);
                 return;
@@ -53,74 +52,93 @@ const processMessages = async(err, message, messageOptions) => {
 
                 let response = "Sending ";
                 let userNames = [];
+                let userIds = [];
                 mentions.forEach(function(mention) {
                     let name = mention.username;
                     response += name + ", "
                     userNames.push(name);
+                    userIds.push(mention._id);
                 });
                 response += "to the Gulag.";
-                await addUsersToTheGulag(gulagRoomId, userNames);
-
+                await addUsersToTheGulag(gulagRoomId, userNames, userIds);
+                await driver.sendToRoom(response, roomName);
             }
-
         }
-
     }
 }
 
 // Gets the Admins of the server
 // because only an Admin can add people to the Gulag
 async function getAdmins()  {
-    let messagePayload = {
-        "msg": "method",
-        "method": "getUserRoles",
-        "params": []
-    }
-    let data = {
-        message: JSON.stringify(messagePayload)
-    }
-    const response = await api.post('method.call/getUserRoles', data);
-    const responseMessage = JSON.parse(response.message);
-    let users = responseMessage.result;
-    let admins = [];
-    let userIds = []
+    try {
+        let messagePayload = {
+            "msg": "method",
+            "method": "getUserRoles",
+            "params": []
+        }
+        let data = {
+            message: JSON.stringify(messagePayload)
+        }
+        const response = await api.post('method.call/getUserRoles', data);
+        const responseMessage = JSON.parse(response.message);
+        let users = responseMessage.result;
+        let admins = [];
+        let userIds = []
 
-    users.forEach(function(user) {
-       console.log(user);
-       let roles = user.roles;
-       roles.forEach(function(role) {
-           // this user is an admin
-           if (role.toLowerCase().trim() === 'admin') {
-               admins.push(user.username);
-               userIds.push(user._id);
-           }
-       });
-    });
+        users.forEach(function(user) {
+            let roles = user.roles;
+            roles.forEach(function(role) {
+                // this user is an admin
+                if (role.toLowerCase().trim() === 'admin') {
+                    admins.push(user.username);
+                    userIds.push(user._id);
+                }
+            });
+        });
 
-    console.log('admins', admins);
-    return {'admins': admins, 'ids': userIds};
+        return {'admins': admins, 'ids': userIds};
+    } catch (e) {
+        console.log('Error in getting user roles', e.toString());
+        return {'admins': [], 'ids': []};
+    }
 }
 
-// adds users to a room
-async function addUsersToTheGulag(roomId, users) {
+// adds users to the gulag
+async function addUsersToTheGulag(roomId, users, userIds) {
+    try {
+        let data = {
+            "msg": "method",
+            "method": "addUsersToRoom",
+            params: [
+                {
+                    rid: roomId,
+                    users: users
+                }
+            ]
+        }
+        let request = {
+            'message': JSON.stringify(data)
+        }
+        const response = await api.post('method.call/addUsersToRoom', request);
 
+        userIds.forEach(function (user) {
+            setTimeout(function() {
+                removeUserFromGulag(roomId, user).catch(function(e) {
+                    console.log('Error in removing', user, 'with error', e.toString());
+                });
+            }, 5000);
+        });
 
-    let data = {
-        "msg": "method",
-        "method": "addUsersToRoom",
-        params: [
-            {
-                rid: roomId,
-                users: users
-            }
-        ]
+    } catch (e) {
+        console.log('Error in adding user to the Gulag', e.toString());
     }
+}
 
-    let request = {
-        'message': JSON.stringify(data)
-    }
+async function removeUserFromGulag(roomId, userId) {
 
-    return await api.post('method.call/addUsersToRoom', request);
+    let data = {roomId: roomId, userId: userId};
+    const response = await api.post('groups.kick', data);
+
 }
 
 gulagbot();
