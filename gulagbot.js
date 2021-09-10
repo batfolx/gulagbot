@@ -30,16 +30,36 @@ const processMessages = async(err, message, messageOptions) => {
         const roomId = message._id;
         // can filter further based on message.rid
         const roomName = messageOptions.roomName;
-
         const messageContent = message.msg;
         const userId = message.u._id;
-        await getUserRole(userId);
         if (messageContent.startsWith("!gulag")) {
+
+
+            // could possibly cache this, but for right now this'll do
+            const adminIds = await getAdmins();
+            const admins = adminIds['admins'];
+            const ids = adminIds['ids'];
+            //
+            if (!ids.includes(userId)) {
+                await driver.sendToRoom('You cannot send someone to the Gulag. You are not an Admin!', roomName);
+                return;
+            }
+
             let mentions = message.mentions;
             if (mentions.length === 0) {
                 let response = 'You need to mention someone to send them to the Gulag.'
                 await driver.sendToRoom(response, roomName);
             } else {
+
+                let response = "Sending ";
+                let userNames = [];
+                mentions.forEach(function(mention) {
+                    let name = mention.username;
+                    response += name + ", "
+                    userNames.push(name);
+                });
+                response += "to the Gulag.";
+                await addUsersToTheGulag(gulagRoomId, userNames);
 
             }
 
@@ -63,6 +83,7 @@ async function getAdmins()  {
     const responseMessage = JSON.parse(response.message);
     let users = responseMessage.result;
     let admins = [];
+    let userIds = []
 
     users.forEach(function(user) {
        console.log(user);
@@ -70,13 +91,36 @@ async function getAdmins()  {
        roles.forEach(function(role) {
            // this user is an admin
            if (role.toLowerCase().trim() === 'admin') {
-               admins.push(user)
+               admins.push(user.username);
+               userIds.push(user._id);
            }
        });
     });
 
     console.log('admins', admins);
-    return admins;
+    return {'admins': admins, 'ids': userIds};
+}
+
+// adds users to a room
+async function addUsersToTheGulag(roomId, users) {
+
+
+    let data = {
+        "msg": "method",
+        "method": "addUsersToRoom",
+        params: [
+            {
+                rid: roomId,
+                users: users
+            }
+        ]
+    }
+
+    let request = {
+        'message': JSON.stringify(data)
+    }
+
+    return await api.post('method.call/addUsersToRoom', request);
 }
 
 gulagbot();
