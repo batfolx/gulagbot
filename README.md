@@ -28,7 +28,7 @@ touch .env
 You'll want to create a new bot user with the permissions of bot.
 
 
-You'll also want to make sure your Rocket.Chat has a room called `Gulag`, and that the bot is inside that channel. 
+You'll also want to make sure your Rocket.Chat has a room called `gulag`, and that the bot is inside that channel. 
 You can modify the `ROOMS` variable to include more rooms that the bot can be included in. The more channels the bot is in,
 the more channels you can use to send someone to the Gulag.
 
@@ -39,10 +39,10 @@ Since we don't want to push the bot's credentials to version control, we want to
 what a sample `.env` file would look like for this code.
 
 ```
-HOST=http://127.0.0.1:80
-ROCKETUSER=MyBotUsername
-ROCKETPASS=mypassword
-BOTNAME=My Bot
+ROCKETCHAT_URL=http://127.0.0.1:80
+ROCKETCHAT_USER=GulagBot
+ROCKETCHAT_PASSWORD=password
+TIMEOUT=60000
 ```
 
 Of course, you'll fill in the credentials that you used to create the bot in step number 3.
