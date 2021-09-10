@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { driver, api } = require('@rocket.chat/sdk');
-// customize the following with your server and BOT account information
 const HOST = process.env.ROCKETCHAT_URL;
 const USER = process.env.ROCKETCHAT_USER;
 const PASS = process.env.ROCKETCHAT_PASSWORD;
@@ -10,21 +9,17 @@ const ROOMS = ['gulag', 'general'];
 
 let myuserid;
 let gulagRoomId;
-// this simple bot does not handle errors, different message types, server resets
-// and other production situations
 
-const runbot = async () => {
+const gulagbot = async () => {
     await driver.connect( { host: HOST, useSsl: SSL})
     myuserid = await driver.login({username: USER, password: PASS});
+    // join rooms, subscribe to them and setup callback function
     await driver.joinRooms(ROOMS);
-    // set up subscriptions - rooms we are interested in listening to
     await driver.subscribeToMessages();
-    // connect the processMessages callback
-    await driver.reactToMessages( processMessages );
-    // greets from the first room in ROOMS
-    await driver.sendToRoom(BOTNAME + ' is listening ...', ROOMS[0]);
-    gulagRoomId = await driver.getRoomId(ROOMS[0])
+    await driver.reactToMessages(processMessages);
+    gulagRoomId = await driver.getRoomId(ROOMS[0]);
     await api.login();
+    await getUserRoles();
 }
 
 // callback for incoming messages filter and processing
@@ -32,24 +27,20 @@ const processMessages = async(err, message, messageOptions) => {
     if (!err) {
         // filter our own message
         if (message.u._id === myuserid) return;
-        const roomName = messageOptions.roomName;
+
+        const roomId = message._id;
         // can filter further based on message.rid
-        const roomname = await driver.getRoomName(message.rid);
+        const roomName = messageOptions.roomName;
 
         const messageContent = message.msg;
         const userId = message.u._id;
+        await getUserRole(userId);
         if (messageContent.startsWith("!gulag")) {
             let mentions = message.mentions;
             if (mentions.length === 0) {
                 let response = 'You need to mention someone to send them to the Gulag.'
-                await driver.sendToRoom(response, roomname);
+                await driver.sendToRoom(response, roomName);
             } else {
-                let userIds = []
-                for (let mention in mentions) {
-                    userIds.push(mention._id)
-                }
-
-
 
             }
 
@@ -58,4 +49,34 @@ const processMessages = async(err, message, messageOptions) => {
     }
 }
 
-runbot();
+
+async function getUserRoles()  {
+    let messagePayload = {
+        "msg": "method",
+        "method": "getUserRoles",
+        "params": []
+    }
+    let data = {
+        message: JSON.stringify(messagePayload)
+    }
+    const response = await api.post('method.call/getUserRoles', data);
+    const responseMessage = JSON.parse(response.message);
+    let users = responseMessage.result;
+    let admins = [];
+
+    users.forEach(function(user) {
+       console.log(user);
+       let roles = user.roles;
+       roles.forEach(function(role) {
+           // this user is an admin
+           if (role.toLowerCase().trim() === 'admin') {
+               admins.push(user)
+           }
+       });
+    });
+
+    console.log('admins', admins);
+    return admins;
+}
+
+gulagbot();
