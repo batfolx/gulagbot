@@ -25,7 +25,8 @@ touch .env
 
 ### 3. Create a bot user in your Rocket.Chat
 
-You'll want to create a new bot user with the permissions of bot.
+You'll want to create a new bot user with the permissions of `bot` and `moderator`. The bot will not be allowed to add/remove users from 
+channels without these permissions.
 
 
 You'll also want to make sure your Rocket.Chat has 2 rooms called `gulag` and `general` (case sensitive), and that the bot is inside that channel. 
