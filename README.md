@@ -28,7 +28,7 @@ touch .env
 You'll want to create a new bot user with the permissions of bot.
 
 
-You'll also want to make sure your Rocket.Chat has a room called `gulag`, and that the bot is inside that channel. 
+You'll also want to make sure your Rocket.Chat has 2 rooms called `gulag` and `general` (case sensitive), and that the bot is inside that channel. 
 You can modify the `ROOMS` variable to include more rooms that the bot can be included in. The more channels the bot is in,
 the more channels you can use to send someone to the Gulag.
 
@@ -71,4 +71,9 @@ If we had a user with the username `badman`, all we would have to do is type
 and then bot will take care of the rest.
 
 The bot will automatically take people out of the Gulag at the end of the specified `TIMEOUT` environment variable.
+
+
+### The bot in action.
+
+<img src="img/gulagbot.gif" alt="gulagbot.gif"/>
 
