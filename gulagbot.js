@@ -129,11 +129,10 @@ async function addUsersToTheGulag(roomId, users, userIds) {
         let request = {
             'message': JSON.stringify(data)
         }
-        const response = await api.post('method.call/addUsersToRoom', request);
-
+        await api.post('method.call/addUsersToRoom', request);
         userIds.forEach(function (user, index) {
             setTimeout(function() {
-                removeUserFromGulag(roomId, user, users[i]).catch(function(e) {
+                removeUserFromGulag(roomId, user, users[index]).catch(function(e) {
                     console.log('Error in removing', user, 'with error', e.toString());
                 });
             }, TIMEOUT);
